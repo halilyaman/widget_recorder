@@ -7,10 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:widget_recorder/src/widget_recorder_controller.dart';
 import 'package:widget_recorder/src/widget_recorder_snapshot.dart';
 
-export 'package:widget_recorder/src/widget_recorder_snapshot.dart';
 export 'package:widget_recorder/src/widget_recorder_controller.dart';
-export 'package:widget_recorder/src/widget_recorder_simple_controller.dart';
 export 'package:widget_recorder/src/widget_recorder_periodic_controller.dart';
+export 'package:widget_recorder/src/widget_recorder_simple_controller.dart';
+export 'package:widget_recorder/src/widget_recorder_snapshot.dart';
 
 /// A [Widget] that generates an image from a Widget following the provided schedule.
 class WidgetRecorder extends StatefulWidget {
@@ -22,11 +22,7 @@ class WidgetRecorder extends StatefulWidget {
 
   final Function(WidgetRecorderSnapshot) onSnapshotTaken;
 
-  WidgetRecorder(
-      {Key key,
-      @required this.child,
-      @required this.controller,
-      this.onSnapshotTaken})
+  WidgetRecorder({Key key, @required this.child, @required this.controller, this.onSnapshotTaken})
       : assert(child != null),
         assert(controller != null),
         super(key: key);
@@ -70,23 +66,18 @@ class _WidgetRecorderState extends State<WidgetRecorder> {
     RenderRepaintBoundary repaintBoundary = _getRepaintBoundary();
     WidgetRecorderSnapshot snapshot;
 
-    if (this.mounted && !repaintBoundary.debugNeedsPaint) {
+    if (this.mounted) {
       Size widgetSize = repaintBoundary.size;
-      ui.Image image = await repaintBoundary.toImage(
-          pixelRatio: widget.controller.pixelRatio);
-      ByteData byteData =
-          await image.toByteData(format: widget.controller.byteFormat);
+      ui.Image image = await repaintBoundary.toImage(pixelRatio: widget.controller.pixelRatio);
+      ByteData byteData = await image.toByteData(format: widget.controller.byteFormat);
 
       if (widget.controller.scaleFactor != 1.0) {
         final ui.Codec markerImageCodec = await ui.instantiateImageCodec(
             byteData.buffer.asUint8List(),
-            targetWidth:
-                (widgetSize.width * widget.controller.scaleFactor).toInt(),
-            targetHeight:
-                (widgetSize.height * widget.controller.scaleFactor).toInt());
+            targetWidth: (widgetSize.width * widget.controller.scaleFactor).toInt(),
+            targetHeight: (widgetSize.height * widget.controller.scaleFactor).toInt());
         final ui.FrameInfo frameInfo = await markerImageCodec.getNextFrame();
-        byteData = await frameInfo.image
-            .toByteData(format: widget.controller.byteFormat);
+        byteData = await frameInfo.image.toByteData(format: widget.controller.byteFormat);
       }
 
       snapshot = WidgetRecorderSnapshot(
